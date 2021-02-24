@@ -1,25 +1,35 @@
-
 import 'package:flutter/material.dart';
 
 // Convenient method for easily display a top modal
 // Here we can customize more
-Future<T> showTopModalSheet<T>({ @required BuildContext context, @required Widget child, }) {
-  return Navigator.of(context).push(PageRouteBuilder<T>(pageBuilder: (_, __, ___) {
-    return TopModalSheet<T>(child: child, );
-  }, opaque: false));
+Future<T> showTopModalSheet<T>(
+    {@required BuildContext context,
+    @required Widget child,
+    Color backgroundColor}) {
+  return Navigator.of(context).push(PageRouteBuilder<T>(
+      pageBuilder: (_, __, ___) {
+        return TopModalSheet<T>(
+          child: child,
+          backgroundColor: backgroundColor,
+        );
+      },
+      opaque: false));
 }
 
 class TopModalSheet<T> extends StatefulWidget {
   final Widget child;
   Color backgroundColor;
 
-  TopModalSheet({Key key, @required this.child, this.backgroundColor = Colors.black54}): super(key: key);
+  TopModalSheet(
+      {Key key, @required this.child, this.backgroundColor = Colors.black54})
+      : super(key: key);
 
   @override
   TopModalSheetState<T> createState() => TopModalSheetState<T>();
 }
 
-class TopModalSheetState<T> extends State<TopModalSheet<T>> with SingleTickerProviderStateMixin {
+class TopModalSheetState<T> extends State<TopModalSheet<T>>
+    with SingleTickerProviderStateMixin {
   final GlobalKey _childKey = GlobalKey();
   Animation<double> _animation;
   AnimationController _animationController;
@@ -30,18 +40,20 @@ class TopModalSheetState<T> extends State<TopModalSheet<T>> with SingleTickerPro
     return renderBox.size.height;
   }
 
-  bool get _dismissUnderway => _animationController.status == AnimationStatus.reverse;
+  bool get _dismissUnderway =>
+      _animationController.status == AnimationStatus.reverse;
 
   @override
   void initState() {
     super.initState();
 
-    _animationController = AnimationController(vsync: this, duration: Duration(milliseconds: 300));
+    _animationController =
+        AnimationController(vsync: this, duration: Duration(milliseconds: 300));
     _animation = Tween<double>(begin: -1, end: 0).animate(_animationController);
 
     _animationController.addStatusListener((status) {
       if (status == AnimationStatus.dismissed) {
-        if(!_isPoping) {
+        if (!_isPoping) {
           Navigator.pop(context);
         }
       }
@@ -63,7 +75,8 @@ class TopModalSheetState<T> extends State<TopModalSheet<T>> with SingleTickerPro
     if (details.velocity.pixelsPerSecond.dy > 0) return;
 
     if (details.velocity.pixelsPerSecond.dy > 700) {
-      final double flingVelocity = -details.velocity.pixelsPerSecond.dy / _childHeight;
+      final double flingVelocity =
+          -details.velocity.pixelsPerSecond.dy / _childHeight;
       if (_animationController.value > 0.0)
         _animationController.fling(velocity: flingVelocity);
     } else if (_animationController.value < 0.5) {
@@ -72,16 +85,16 @@ class TopModalSheetState<T> extends State<TopModalSheet<T>> with SingleTickerPro
     } else {
       _animationController.reverse();
       widget.backgroundColor = Colors.transparent;
-      setState(() { });
+      setState(() {});
     }
   }
 
   Future<bool> onBackPressed({dynamic data}) async {
     _animationController.reverse();
     widget.backgroundColor = Colors.transparent;
-    setState(() {  });
+    setState(() {});
 
-    if(data != null){
+    if (data != null) {
       _isPoping = true;
       Navigator.of(context).pop(data);
     }
@@ -92,32 +105,43 @@ class TopModalSheetState<T> extends State<TopModalSheet<T>> with SingleTickerPro
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
-      onWillPop: onBackPressed,
-      child: GestureDetector(
-        onVerticalDragUpdate: _handleDragUpdate,
-        onVerticalDragEnd: _handleDragEnd,
-        child: SafeArea(
-          child: Scaffold(
-            backgroundColor: widget.backgroundColor,
-            body: Column(
-              key: _childKey,
-              children: <Widget>[
-                AnimatedBuilder(animation: _animation, child: widget.child, builder: (context, child) {
-                  return Transform(
-                    transform: Matrix4.translationValues(0.0, MediaQuery.of(context).size.height * _animation.value, 0.0),
-                    child: Container(
-                      width: MediaQuery.of(context).size.width,
-                      child: GestureDetector(behavior: HitTestBehavior.opaque, child: child, onTap: () {}, ),
-                    ),
-                  );
-                }),
-              ],
+        onWillPop: onBackPressed,
+        child: GestureDetector(
+          onVerticalDragUpdate: _handleDragUpdate,
+          onVerticalDragEnd: _handleDragEnd,
+          child: SafeArea(
+            bottom: false,
+            child: Scaffold(
+              backgroundColor: widget.backgroundColor,
+              body: Column(
+                key: _childKey,
+                children: <Widget>[
+                  AnimatedBuilder(
+                      animation: _animation,
+                      child: widget.child,
+                      builder: (context, child) {
+                        return Transform(
+                          transform: Matrix4.translationValues(
+                              0.0,
+                              MediaQuery.of(context).size.height *
+                                  _animation.value,
+                              0.0),
+                          child: Container(
+                            width: MediaQuery.of(context).size.width,
+                            child: GestureDetector(
+                              behavior: HitTestBehavior.opaque,
+                              child: child,
+                              onTap: () {},
+                            ),
+                          ),
+                        );
+                      }),
+                ],
+              ),
             ),
           ),
-        ),
-        excludeFromSemantics: true,
-      )
-    );
+          excludeFromSemantics: true,
+        ));
   }
 
   @override
