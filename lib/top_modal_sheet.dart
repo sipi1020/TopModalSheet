@@ -5,12 +5,14 @@ import 'package:flutter/material.dart';
 Future<T> showTopModalSheet<T>(
     {@required BuildContext context,
     @required Widget child,
-    Color backgroundColor}) {
+    Color backgroundColor,
+    VoidCallback onDismissed}) {
   return Navigator.of(context).push(PageRouteBuilder<T>(
       pageBuilder: (_, __, ___) {
         return TopModalSheet<T>(
           child: child,
           backgroundColor: backgroundColor,
+          onDismissed: onDismissed,
         );
       },
       opaque: false));
@@ -19,9 +21,13 @@ Future<T> showTopModalSheet<T>(
 class TopModalSheet<T> extends StatefulWidget {
   final Widget child;
   Color backgroundColor;
+  VoidCallback onDismissed;
 
   TopModalSheet(
-      {Key key, @required this.child, this.backgroundColor = Colors.black54})
+      {Key key,
+      @required this.child,
+      this.backgroundColor = Colors.black54,
+      this.onDismissed})
       : super(key: key);
 
   @override
@@ -55,6 +61,7 @@ class TopModalSheetState<T> extends State<TopModalSheet<T>>
       if (status == AnimationStatus.dismissed) {
         if (!_isPoping) {
           Navigator.pop(context);
+          widget.onDismissed?.call();
         }
       }
     });
@@ -97,6 +104,7 @@ class TopModalSheetState<T> extends State<TopModalSheet<T>>
     if (data != null) {
       _isPoping = true;
       Navigator.of(context).pop(data);
+      widget.onDismissed?.call();
     }
 
     return true;
